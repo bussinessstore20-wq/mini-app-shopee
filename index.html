@@ -3,10 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Shopee VIP Loader Pro</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
     :root {
       --primary-gradient: linear-gradient(135deg, #FF5722 0%, #FF2A00 100%);
@@ -20,89 +31,1047 @@
       --red-status: #EF4444;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    
-    body { 
-      background-color: var(--bg-dark); 
-      background-image: radial-gradient(circle at 50% 0%, rgba(255, 87, 34, 0.15) 0%, transparent 50%);
-      color: var(--text-main); 
-      display: flex; 
-      justify-content: center; 
-      padding: 24px 14px; 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image:
+        radial-gradient(
+          circle at 50% 0%,
+          rgba(255, 87, 34, 0.15) 0%,
+          transparent 50%
+        );
+
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      padding: 24px 14px;
       min-height: 100vh;
     }
 
-    .container { width: 100%; max-width: 480px; }
-    
-    .card { 
-      background: var(--card-bg); 
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .card {
+      background: var(--card-bg);
       backdrop-filter: blur(16px);
-      border-radius: 20px; 
-      padding: 20px; 
+      border-radius: 20px;
+      padding: 20px;
       border: 1px solid var(--border-color);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); 
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
       margin-bottom: 20px;
     }
 
-    .header { 
-      text-align: center; 
-      margin-bottom: 24px; 
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
     .badge {
-      display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
-      border-radius: 20px; background: rgba(255, 179, 0, 0.1); border: 1px solid rgba(255, 179, 0, 0.3);
-      color: #FFB300; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(255, 179, 0, 0.1);
+      border: 1px solid rgba(255, 179, 0, 0.3);
+      color: #FFB300;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 10px;
     }
 
     .status-ping {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 0.75rem; font-weight: 700; color: var(--text-muted);
-      background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+      padding: 4px 12px;
+      border-radius: 20px;
       border: 1px solid var(--border-color);
       margin-bottom: 16px;
     }
-    .ping-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
-    .ping-dot.online { background: var(--green-status); box-shadow: 0 0 8px var(--green-status); }
-    .ping-dot.offline { background: var(--red-status); box-shadow: 0 0 8px var(--red-status); }
 
-    .header h2 { font-size: 1.35rem; font-weight: 800; color: #FFF; }
-    
-    .config-group { 
-      margin-bottom: 18px; background: var(--input-bg); padding: 12px; border-radius: 14px; border: 1px solid var(--border-color);
-    }
-    .config-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px; }
-    .config-group select { 
-      width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); 
-      background: #181C24; color: #FFF; font-size: 0.85rem; font-weight: 600; outline: none;
+    .ping-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
     }
 
-    .counter { text-align: right; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; }
-    .counter span { color: #FF5722; font-weight: 800; }
-
-    .link-wrapper { margin-bottom: 14px; }
-    .input-group { display: flex; gap: 8px; align-items: center; }
-    .input-group input { 
-      flex: 1; padding: 12px 14px; background: var(--input-bg); border: 1px solid var(--border-color); 
-      border-radius: 12px; font-size: 0.88rem; color: #FFF;
+    .ping-dot.online {
+      background: var(--green-status);
+      box-shadow: 0 0 8px var(--green-status);
     }
-    .input-group input:focus { outline: none; border-color: #FF5722; }
+
+    .ping-dot.offline {
+      background: var(--red-status);
+      box-shadow: 0 0 8px var(--red-status);
+    }
+
+    .ping-dot.waiting {
+      background: #FFB300;
+      box-shadow: 0 0 8px #FFB300;
+    }
+
+    .header h2 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #FFF;
+    }
+
+    .config-group {
+      margin-bottom: 18px;
+      background: var(--input-bg);
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+    }
+
+    .config-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .config-group select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: #181C24;
+      color: #FFF;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .counter {
+      text-align: right;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .counter span {
+      color: #FF5722;
+      font-weight: 800;
+    }
+
+    .link-wrapper {
+      margin-bottom: 14px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .input-group input {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 14px;
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 0.88rem;
+      color: #FFF;
+    }
+
+    .input-group input::placeholder {
+      color: #777;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #FF5722;
+    }
 
     .preview-box {
-      display: none; align-items: center; gap: 10px; background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; margin-top: 6px;
-      font-size: 0.78rem; color: var(--text-muted);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
     }
-    .preview-box i { color: #FF5722; font-size: 1rem; }
-    .preview-box .domain { color: #FFF; font-weight: 600; }
 
-    .btn-action { color: white; border: none; width: 42px; height: 42px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .btn-paste { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); }
-    .btn-remove { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #EF4444; }
+    .preview-box i {
+      color: #FF5722;
+      font-size: 1rem;
+    }
 
+    .preview-box .domain {
+      color: #FFF;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn-action {
+      color: white;
+      border: none;
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-paste {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-paste:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .btn-remove {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #EF4444;
+    }
+
+    .btn-remove:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-add {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      color: #FFB300;
+      border: 1px dashed rgba(255, 179, 0, 0.4);
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-bottom: 18px;
+    }
+
+    .btn-add:hover {
+      background: rgba(255, 179, 0, 0.05);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(255, 42, 0, 0.35);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #status-msg {
+      text-align: center;
+      font-weight: 700;
+      margin-top: 14px;
+      font-size: 0.85rem;
+      min-height: 20px;
+    }
+
+    .history-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+    }
+
+    .history-card h3 {
+      font-size: 0.95rem;
+      color: #FFF;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .history-item {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-date {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="card">
+
+      <div class="header">
+
+        <div class="badge">
+          <i class="fa-solid fa-crown"></i>
+          Automation VIP
+        </div>
+
+        <div class="status-ping">
+          <span id="ping-dot" class="ping-dot waiting"></span>
+          <span id="ping-text">Aguardando</span>
+        </div>
+
+        <h2>Painel de Disparo Shopee</h2>
+
+      </div>
+
+
+      <div class="config-group">
+
+        <label for="intervalo">
+          <i class="fa-regular fa-clock"></i>
+          Frequência de Postagem
+        </label>
+
+        <select id="intervalo">
+
+          <option value="0">
+            🚀 Disparar Tudo Imediatamente
+          </option>
+
+          <option value="5">
+            ⏱️ A cada 5 minutos
+          </option>
+
+          <option value="15" selected>
+            ⏱️ A cada 15 minutos
+          </option>
+
+          <option value="30">
+            ⏱️ A cada 30 minutos
+          </option>
+
+          <option value="60">
+            ⏱️ A cada 1 hora
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="counter">
+        Campos:
+        <span id="total-count">1</span>
+        / 20
+      </div>
+
+
+      <div id="links-container">
+
+        <div class="link-wrapper">
+
+          <div class="input-group">
+
+            <input
+              type="url"
+              class="shopee-link"
+              placeholder="1. Cole o link do produto..."
+              oninput="processarInput(this)"
+            >
+
+            <button
+              type="button"
+              class="btn-action btn-paste"
+              onclick="colarDoClipboard(this)"
+              title="Colar link"
+            >
+              <i class="fa-solid fa-paste"></i>
+            </button>
+
+          </div>
+
+          <div class="preview-box">
+
+            <i class="fa-solid fa-link"></i>
+
+            Detectado:
+
+            <span class="domain"></span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="btn-add"
+        id="btn-add-more"
+        onclick="adicionarCampo()"
+      >
+        <i class="fa-solid fa-plus"></i>
+        Adicionar outro link
+      </button>
+
+
+      <button
+        type="button"
+        class="btn-submit"
+        id="btn-submit"
+        onclick="dispararLote()"
+      >
+        <i class="fa-solid fa-paper-plane"></i>
+        ENVIAR AGORA
+      </button>
+
+
+      <p id="status-msg"></p>
+
+    </div>
+
+
+    <div class="history-card">
+
+      <h3>
+
+        <span>
+          <i class="fa-solid fa-history"></i>
+          Envios Recentes
+        </span>
+
+        <i
+          class="fa-solid fa-trash-can"
+          style="cursor:pointer; font-size:0.8rem;"
+          onclick="limparHistorico()"
+          title="Limpar histórico"
+        ></i>
+
+      </h3>
+
+      <div id="history-list"></div>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    /*
+     * =====================================================
+     * CONFIGURAÇÃO
+     * =====================================================
+     */
+
+    const MAX_LINKS = 20;
+
+    /*
+     * WEBHOOK FICTÍCIO POR ENQUANTO
+     *
+     * Quando o n8n estiver pronto, substitua somente
+     * esta URL pela URL real do seu Webhook.
+     */
+
+    const WEBHOOK_URL =
+      'https://seu-n8n-exemplo.com/webhook/envio-shopee';
+
+
+    /*
+     * Telegram WebApp
+     */
+
+    const tg = window.Telegram?.WebApp;
+
+    if (tg) {
+      tg.expand();
+    }
+
+
+    /*
+     * =====================================================
+     * PROCESSAR LINK
+     * =====================================================
+     */
+
+    function processarInput(input) {
+
+      const wrapper =
+        input.closest('.link-wrapper');
+
+      if (!wrapper) return;
+
+      const previewBox =
+        wrapper.querySelector('.preview-box');
+
+      const domainSpan =
+        wrapper.querySelector('.domain');
+
+      const valor =
+        input.value.trim();
+
+
+      /*
+       * Detecta Shopee
+       */
+
+      if (
+        valor.toLowerCase().includes('shopee') ||
+        valor.toLowerCase().includes('shp.ee')
+      ) {
+
+        previewBox.style.display = 'flex';
+
+        domainSpan.innerText =
+          valor.length > 50
+            ? valor.substring(0, 50) + '...'
+            : valor;
+
+      } else {
+
+        previewBox.style.display = 'none';
+
+      }
+
+
+      /*
+       * Se o usuário colar vários links
+       * separados por quebra de linha,
+       * transforma cada um em um campo.
+       */
+
+      const linhas =
+        valor
+          .split(/\r?\n/)
+          .map(linha => linha.trim())
+          .filter(linha => linha.length > 0);
+
+
+      if (linhas.length > 1) {
+
+        input.value = linhas[0];
+
+        processarInput(input);
+
+        for (let i = 1; i < linhas.length; i++) {
+
+          adicionarCampo(linhas[i]);
+
+        }
+
+      }
+
+    }
+
+
+    /*
+     * =====================================================
+     * ADICIONAR CAMPO
+     * =====================================================
+     */
+
+    function adicionarCampo(valor = '') {
+
+      const container =
+        document.getElementById('links-container');
+
+      const inputs =
+        container.querySelectorAll('.shopee-link');
+
+
+      if (inputs.length >= MAX_LINKS) {
+
+        return;
+
+      }
+
+
+      const index =
+        inputs.length + 1;
+
+
+      const newWrapper =
+        document.createElement('div');
+
+      newWrapper.className =
+        'link-wrapper';
+
+
+      /*
+       * Usamos textContent depois para evitar
+       * problemas com valores inseridos diretamente
+       * no HTML.
+       */
+
+      newWrapper.innerHTML = `
+
+        <div class="input-group">
+
+          <input
+            type="url"
+            class="shopee-link"
+            placeholder="${index}. Cole o link do produto..."
+            oninput="processarInput(this)"
+          >
+
+          <button
+            type="button"
+            class="btn-action btn-paste"
+            onclick="colarDoClipboard(this)"
+            title="Colar link"
+          >
+            <i class="fa-solid fa-paste"></i>
+          </button>
+
+          <button
+            type="button"
+            class="btn-action btn-remove"
+            onclick="removerCampo(this)"
+            title="Remover"
+          >
+            <i class="fa-solid fa-trash"></i>
+          </button>
+
+        </div>
+
+        <div class="preview-box">
+
+          <i class="fa-solid fa-link"></i>
+
+          Detectado:
+
+          <span class="domain"></span>
+
+        </div>
+
+      `;
+
+
+      container.appendChild(newWrapper);
+
+
+      const inputElem =
+        newWrapper.querySelector('.shopee-link');
+
+
+      /*
+       * Coloca o valor somente depois
+       * do elemento estar criado.
+       */
+
+      if (valor) {
+
+        inputElem.value = valor;
+
+        processarInput(inputElem);
+
+      }
+
+
+      atualizarContador();
+
+    }
+
+
+    /*
+     * =====================================================
+     * COLAR CLIPBOARD
+     * =====================================================
+     */
+
+    async function colarDoClipboard(button) {
+
+      const input =
+        button.parentElement
+          .querySelector('.shopee-link');
+
+
+      try {
+
+        const texto =
+          await navigator.clipboard.readText();
+
+
+        if (texto) {
+
+          input.value =
+            texto.trim();
+
+          processarInput(input);
+
+        }
+
+      } catch (erro) {
+
+        alert(
+          'Não foi possível acessar a área de transferência.'
+        );
+
+      }
+
+    }
+
+
+    /*
+     * =====================================================
+     * REMOVER CAMPO
+     * =====================================================
+     */
+
+    function removerCampo(button) {
+
+      const wrapper =
+        button.closest('.link-wrapper');
+
+
+      if (wrapper) {
+
+        wrapper.remove();
+
+      }
+
+
+      /*
+       * Garante que sempre exista
+       * pelo menos um campo.
+       */
+
+      const quantidade =
+        document.querySelectorAll('.shopee-link').length;
+
+
+      if (quantidade === 0) {
+
+        adicionarCampo();
+
+      }
+
+
+      reindexarPlaceholders();
+
+      atualizarContador();
+
+    }
+
+
+    /*
+     * =====================================================
+     * REINDEXAR PLACEHOLDERS
+     * =====================================================
+     */
+
+    function reindexarPlaceholders() {
+
+      const inputs =
+        document.querySelectorAll('.shopee-link');
+
+
+      inputs.forEach((input, index) => {
+
+        input.placeholder =
+          `${index + 1}. Cole o link do produto...`;
+
+      });
+
+    }
+
+
+    /*
+     * =====================================================
+     * CONTADOR
+     * =====================================================
+     */
+
+    function atualizarContador() {
+
+      const total =
+        document.querySelectorAll('.shopee-link').length;
+
+
+      document.getElementById('total-count')
+        .innerText = total;
+
+
+      const btnAdd =
+        document.getElementById('btn-add-more');
+
+
+      if (btnAdd) {
+
+        btnAdd.style.display =
+          total >= MAX_LINKS
+            ? 'none'
+            : 'block';
+
+      }
+
+    }
+
+
+    /*
+     * =====================================================
+     * HISTÓRICO
+     * =====================================================
+     */
+
+    function salvarHistorico(qtd) {
+
+      const historia =
+        JSON.parse(
+          localStorage.getItem('shopee_history') || '[]'
+        );
+
+
+      const agora =
+        new Date();
+
+
+      const dataHora =
+        agora.toLocaleString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+
+      historia.unshift({
+        qtd: qtd,
+        dataHora: dataHora
+      });
+
+
+      /*
+       * Mantém somente os 5 últimos envios.
+       */
+
+      if (historia.length > 5) {
+
+        historia.pop();
+
+      }
+
+
+      localStorage.setItem(
+        'shopee_history',
+        JSON.stringify(historia)
+      );
+
+
+      carregarHistorico();
+
+    }
+
+
+    function carregarHistorico() {
+
+      const historyList =
+        document.getElementById('history-list');
+
+
+      const historia =
+        JSON.parse(
+          localStorage.getItem('shopee_history') || '[]'
+        );
+
+
+      if (historia.length === 0) {
+
+        historyList.innerHTML = `
+          <p style="
+            font-size:0.75rem;
+            color:var(--text-muted);
+            text-align:center;
+          ">
+            Nenhum envio recente.
+          </p>
+        `;
+
+        return;
+
+      }
+
+
+      historyList.innerHTML =
+        historia.map(item => `
+
+          <div class="history-item">
+
+            <span>
+              🚀 Lote com
+              <b>${item.qtd} link(s)</b>
+            </span>
+
+            <span class="history-date">
+              ${item.dataHora}
+            </span>
+
+          </div>
+
+        `).join('');
+
+    }
+
+
+    function limparHistorico() {
+
+      localStorage.removeItem(
+        'shopee_history'
+      );
+
+      carregarHistorico();
+
+    }
+
+
+    /*
+     * =====================================================
+     * ENVIAR LOTE PARA O N8N
+     * =====================================================
+     */
+
+    async function dispararLote() {
+
+      const status =
+        document.getElementById('status-msg');
+
+
+      const botao =
+        document.getElementById('btn-submit');
+
+
+      const inputs =
+        document.querySelectorAll('.shopee-link');
+
+
+      const intervalo =
+        parseInt(
+          document.getElementById('intervalo')?.value || '0',
+          10
+        );
+
+
+      /*
+       * Coleta os links.
+       */
+
+      const listaLinks =
+        Array.from(inputs)
+          .map(input => input.value.trim())
+          .filter(link => link.length > 0);
+
+
+      /*
+       * Validação.
+       */
+
+      if (listaLinks.length === 0) {
+
+        status.style.color =
+          '#EF4444';
+
+        status.innerText =
+          '❌ Insira pelo menos um link.';
+
+        return;
+
+      }
+
+
+      /*
+       * Estado de carregamento.
+       */
+
+      botao.disabled = true;
+
+      status.style.color =
+        '#FFB300';
+
+      status.innerText =
+        `⏳ Enviando ${listaLinks.length} link(s)...`;
+
+
+      /*
+       * Nome do usuário Telegram.
+       */
+
+      const usuario =
+        tg?.initDataUnsafe?.user?.first_name ||
+        'Admin';
+
+
+      /*
+       * Dados enviados ao n8n.
+       */
+
+      const dados = {
+
+        links: listaLinks,
+
+        intervaloMinutos: intervalo,
+
+        usuario: usuario
+
+      };
+
+
+      console.log(
+        'Dados enviados ao n8n:',
+        dados
+      );
+
+
+      try {
+
+        const response =
+          await fetch(
+            WEBHOOK_URL,
+            {
     .btn-add { 
       width: 100%; padding: 12px; background: transparent; color: #FFB300; border: 1px dashed rgba(255, 179, 0, 0.4); 
       border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-bottom: 18px; 
