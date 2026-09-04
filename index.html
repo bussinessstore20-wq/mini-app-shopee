@@ -21,6 +21,7 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    
     body { 
       background-color: var(--bg-dark); 
       background-image: radial-gradient(circle at 50% 0%, rgba(255, 87, 34, 0.15) 0%, transparent 50%);
@@ -32,6 +33,7 @@
     }
 
     .container { width: 100%; max-width: 480px; }
+    
     .card { 
       background: var(--card-bg); 
       backdrop-filter: blur(16px);
@@ -103,6 +105,261 @@
 
     .btn-add { 
       width: 100%; padding: 12px; background: transparent; color: #FFB300; border: 1px dashed rgba(255, 179, 0, 0.4); 
+      border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-bottom: 18px; 
+    }
+    .btn-submit { 
+      width: 100%; padding: 14px; background: var(--primary-gradient); color: white; border: none; 
+      border-radius: 12px; font-weight: 800; font-size: 0.95rem; cursor: pointer; box-shadow: 0 8px 20px rgba(255, 42, 0, 0.35);
+    }
+
+    #status-msg { text-align: center; font-weight: 700; margin-top: 14px; font-size: 0.85rem; }
+
+    .history-card { background: var(--card-bg); border-radius: 20px; padding: 16px; border: 1px solid var(--border-color); }
+    .history-card h3 { font-size: 0.95rem; color: #FFF; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+    .history-item { 
+      background: var(--input-bg); border: 1px solid var(--border-color); padding: 10px 12px; 
+      border-radius: 10px; font-size: 0.8rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .history-date { color: var(--text-muted); font-size: 0.72rem; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <div class="badge"><i class="fa-solid fa-crown"></i> Automation VIP</div>
+        <div class="status-ping">
+          <span id="ping-dot" class="ping-dot"></span>
+          <span id="ping-text">Offline</span>
+        </div>
+        <h2>Painel de Disparo Shopee</h2>
+      </div>
+      
+      <div class="config-group">
+        <label for="intervalo"><i class="fa-regular fa-clock"></i> Frequência de Postagem</label>
+        <select id="intervalo">
+          <option value="0">🚀 Disparar Tudo Imediatamente</option>
+          <option value="5">⏱️ A cada 5 minutos</option>
+          <option value="15" selected>⏱️ A cada 15 minutos</option>
+          <option value="30">⏱️ A cada 30 minutos</option>
+          <option value="60">⏱️ A cada 1 hora</option>
+        </select>
+      </div>
+
+      <div class="counter">Campos: <span id="total-count">1</span> / 20</div>
+
+      <div id="links-container">
+        <div class="link-wrapper">
+          <div class="input-group">
+            <input type="url" class="shopee-link" placeholder="1. Cole o link do produto..." oninput="processarInput(this)" required>
+            <button type="button" class="btn-action btn-paste" onclick="colarDoClipboard(this)"><i class="fa-solid fa-paste"></i></button>
+          </div>
+          <div class="preview-box"><i class="fa-solid fa-link"></i> Detectado: <span class="domain"></span></div>
+        </div>
+      </div>
+
+      <button type="button" class="btn-add" id="btn-add-more" onclick="adicionarCampo()">
+        <i class="fa-solid fa-plus"></i> Adicionar outro link
+      </button>
+
+      <button type="button" class="btn-submit" onclick="dispararLote()">
+        <i class="fa-solid fa-paper-plane"></i> ENVIAR LOTE PARA O N8N
+      </button>
+
+      <p id="status-msg"></p>
+    </div>
+
+    <div class="history-card">
+      <h3>
+        <span><i class="fa-solid fa-history"></i> Envios Recentes</span>
+        <i class="fa-solid fa-trash-can" style="cursor:pointer; font-size: 0.8rem;" onclick="limparHistorico()"></i>
+      </h3>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const MAX_LINKS = 20;
+    const WEBHOOK_URL = 'HTTPS://SEU-N8N.COM/WEBHOOK/ENVIO-SHOPEE'; 
+    const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
+
+    async function checarStatusN8N() {
+      const dot = document.getElementById('ping-dot');
+      const text = document.getElementById('ping-text');
+      try {
+        const res = await fetch(WEBHOOK_URL.replace('/ENVIO-SHOPEE', '/ping'), { method: 'GET' });
+        if(res.ok) {
+          dot.className = "ping-dot online";
+          text.innerText = "Online";
+        } else { throw new Error(); }
+      } catch {
+        dot.className = "ping-dot offline";
+        text.innerText = "Offline";
+      }
+    }
+
+    function processarInput(input) {
+      const wrapper = input.closest('.link-wrapper');
+      const previewBox = wrapper.querySelector('.preview-box');
+      const domainSpan = wrapper.querySelector('.domain');
+      const val = input.value.trim();
+
+      if (val.includes('shopee') || val.includes('shp.ee')) {
+        previewBox.style.display = 'flex';
+        domainSpan.innerText = val.length > 35 ? val.substring(0, 35) + '...' : val;
+      } else {
+        previewBox.style.display = 'none';
+      }
+
+      const linhas = val.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      if (linhas.length > 1) {
+        input.value = linhas[0];
+        processarInput(input);
+        for (let i = 1; i < linhas.length; i++) {
+          adicionarCampo(linhas[i]);
+        }
+      }
+    }
+
+    function adicionarCampo(valor) {
+      const container = document.getElementById('links-container');
+      const inputs = container.querySelectorAll('.shopee-link');
+      if (inputs.length >= MAX_LINKS) return;
+
+      const val = typeof valor === 'string' ? valor : '';
+      const index = inputs.length + 1;
+      const newWrapper = document.createElement('div');
+      newWrapper.className = 'link-wrapper';
+      newWrapper.innerHTML = `
+        <div class="input-group">
+          <input type="url" class="shopee-link" value="${val}" placeholder="${index}. Cole o link do produto..." oninput="processarInput(this)">
+          <button type="button" class="btn-action btn-paste" onclick="colarDoClipboard(this)"><i class="fa-solid fa-paste"></i></button>
+          <button type="button" class="btn-action btn-remove" onclick="removerCampo(this)"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <div class="preview-box"><i class="fa-solid fa-link"></i> Detectado: <span class="domain"></span></div>
+      `;
+
+      container.appendChild(newWrapper);
+      const inputElem = newWrapper.querySelector('.shopee-link');
+      if (val) processarInput(inputElem);
+      atualizarContador();
+    }
+
+    async function colarDoClipboard(button) {
+      const input = button.parentElement.querySelector('.shopee-link');
+      try {
+        const texto = await navigator.clipboard.readText();
+        if (texto) {
+          input.value = texto.trim();
+          processarInput(input);
+        }
+      } catch (err) { alert('Permissão de colar negada.'); }
+    }
+
+    function removerCampo(button) {
+      button.closest('.link-wrapper').remove();
+      reindexarPlaceholders();
+      atualizarContador();
+    }
+
+    function reindexarPlaceholders() {
+      document.querySelectorAll('.shopee-link').forEach((input, i) => {
+        input.placeholder = (i + 1) + '. Cole o link do produto...';
+      });
+    }
+
+    function atualizarContador() {
+      const total = document.querySelectorAll('.shopee-link').length;
+      document.getElementById('total-count').innerText = total;
+      const btnAdd = document.getElementById('btn-add-more');
+      if (btnAdd) btnAdd.style.display = total >= MAX_LINKS ? 'none' : 'block';
+    }
+
+    function salvarHistorico(qtd) {
+      const historia = JSON.parse(localStorage.getItem('shopee_history') || '[]');
+      const dataHora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      historia.unshift({ qtd, dataHora });
+      if (historia.length > 5) historia.pop();
+      localStorage.setItem('shopee_history', JSON.stringify(historia));
+      carregarHistorico();
+    }
+
+    function carregarHistorico() {
+      const historyList = document.getElementById('history-list');
+      const historia = JSON.parse(localStorage.getItem('shopee_history') || '[]');
+      if (historia.length === 0) {
+        historyList.innerHTML = '<p style="font-size:0.75rem; color:var(--text-muted); text-align:center;">Nenhum envio recente.</p>';
+        return;
+      }
+      historyList.innerHTML = historia.map(h => `
+        <div class="history-item">
+          <span>🚀 Lote com <b>${h.qtd} link(s)</b></span>
+          <span class="history-date">${h.dataHora}</span>
+        </div>
+      `).join('');
+    }
+
+    function limparHistorico() {
+      localStorage.removeItem('shopee_history');
+      carregarHistorico();
+    }
+
+    async function dispararLote() {
+      const status = document.getElementById('status-msg');
+      const inputs = document.querySelectorAll('.shopee-link');
+      const intervalo = document.getElementById('intervalo')?.value || 0;
+      
+      const listaLinks = Array.from(inputs).map(input => input.value.trim()).filter(link => link.length > 0);
+
+      if (listaLinks.length === 0) {
+        status.style.color = '#EF4444';
+        status.innerText = 'Insira pelo menos um link.';
+        return;
+      }
+
+      status.style.color = '#FFB300';
+      status.innerText = 'Processando ' + listaLinks.length + ' link(s)...';
+
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            links: listaLinks,
+            intervaloMinutos: parseInt(intervalo),
+            usuario: tg?.initDataUnsafe?.user?.first_name || "Admin" 
+          })
+        });
+
+        if (response.ok) {
+          status.style.color = '#10B981';
+          status.innerText = '🚀 ' + listaLinks.length + ' link(s) disparado(s)!';
+          salvarHistorico(listaLinks.length);
+          
+          document.getElementById('links-container').innerHTML = `
+            <div class="link-wrapper">
+              <div class="input-group">
+                <input type="url" class="shopee-link" placeholder="1. Cole o link do produto..." oninput="processarInput(this)" required>
+                <button type="button" class="btn-action btn-paste" onclick="colarDoClipboard(this)"><i class="fa-solid fa-paste"></i></button>
+              </div>
+              <div class="preview-box"><i class="fa-solid fa-link"></i> Detectado: <span class="domain"></span></div>
+            </div>
+          `;
+          atualizarContador();
+        } else { throw new Error(); }
+      } catch (err) {
+        status.style.color = '#EF4444';
+        status.innerText = '❌ Erro ao enviar para o n8n.';
+      }
+    }
+
+    carregarHistorico();
+    checarStatusN8N();
+  </script>
+</body>
+</html>
       border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; margin-bottom: 18px; 
     }
     .btn-submit { 
