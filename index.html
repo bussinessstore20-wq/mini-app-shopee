@@ -16,6 +16,7 @@
     rel="stylesheet"
   >
 
+  <!-- SDK do Telegram WebApp -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
@@ -116,16 +117,6 @@
     .ping-dot.online {
       background: var(--green-status);
       box-shadow: 0 0 8px var(--green-status);
-    }
-
-    .ping-dot.offline {
-      background: var(--red-status);
-      box-shadow: 0 0 8px var(--red-status);
-    }
-
-    .ping-dot.waiting {
-      background: #FFB300;
-      box-shadow: 0 0 8px #FFB300;
     }
 
     .header h2 {
@@ -360,14 +351,13 @@
         </div>
 
         <div class="status-ping">
-          <span id="ping-dot" class="ping-dot waiting"></span>
-          <span id="ping-text">Aguardando</span>
+          <span id="ping-dot" class="ping-dot online"></span>
+          <span id="ping-text">Telegram Conectado</span>
         </div>
 
         <h2>Painel de Disparo Shopee</h2>
 
       </div>
-
 
       <div class="config-group">
 
@@ -402,13 +392,11 @@
 
       </div>
 
-
       <div class="counter">
         Campos:
         <span id="total-count">1</span>
         / 20
       </div>
-
 
       <div id="links-container">
 
@@ -448,7 +436,6 @@
 
       </div>
 
-
       <button
         type="button"
         class="btn-add"
@@ -458,7 +445,6 @@
         <i class="fa-solid fa-plus"></i>
         Adicionar outro link
       </button>
-
 
       <button
         type="button"
@@ -470,11 +456,9 @@
         ENVIAR AGORA
       </button>
 
-
       <p id="status-msg"></p>
 
     </div>
-
 
     <div class="history-card">
 
@@ -500,38 +484,22 @@
 
   </div>
 
-
   <script>
 
     /*
      * =====================================================
-     * CONFIGURAÇÃO
+     * CONFIGURAÇÃO & TELEGRAM WEBAPP
      * =====================================================
      */
 
     const MAX_LINKS = 20;
 
-    /*
-     * WEBHOOK FICTÍCIO POR ENQUANTO
-     *
-     * Quando o n8n estiver pronto, substitua somente
-     * esta URL pela URL real do seu Webhook.
-     */
-
-    const WEBHOOK_URL =
-      'http://host.docker.internal:5678/webhook/envio-shopee';
-
-
-    /*
-     * Telegram WebApp
-     */
-
     const tg = window.Telegram?.WebApp;
 
     if (tg) {
       tg.expand();
+      tg.ready();
     }
-
 
     /*
      * =====================================================
@@ -541,73 +509,46 @@
 
     function processarInput(input) {
 
-      const wrapper =
-        input.closest('.link-wrapper');
-
+      const wrapper = input.closest('.link-wrapper');
       if (!wrapper) return;
 
-      const previewBox =
-        wrapper.querySelector('.preview-box');
-
-      const domainSpan =
-        wrapper.querySelector('.domain');
-
-      const valor =
-        input.value.trim();
-
+      const previewBox = wrapper.querySelector('.preview-box');
+      const domainSpan = wrapper.querySelector('.domain');
+      const valor = input.value.trim();
 
       /*
        * Detecta Shopee
        */
-
       if (
         valor.toLowerCase().includes('shopee') ||
         valor.toLowerCase().includes('shp.ee')
       ) {
-
         previewBox.style.display = 'flex';
-
         domainSpan.innerText =
           valor.length > 50
             ? valor.substring(0, 50) + '...'
             : valor;
-
       } else {
-
         previewBox.style.display = 'none';
-
       }
 
-
       /*
-       * Se o usuário colar vários links
-       * separados por quebra de linha,
-       * transforma cada um em um campo.
+       * Quebra de linha múltipla
        */
-
-      const linhas =
-        valor
-          .split(/\r?\n/)
-          .map(linha => linha.trim())
-          .filter(linha => linha.length > 0);
-
+      const linhas = valor
+        .split(/\r?\n/)
+        .map(linha => linha.trim())
+        .filter(linha => linha.length > 0);
 
       if (linhas.length > 1) {
-
         input.value = linhas[0];
-
         processarInput(input);
 
         for (let i = 1; i < linhas.length; i++) {
-
           adicionarCampo(linhas[i]);
-
         }
-
       }
-
     }
-
 
     /*
      * =====================================================
@@ -617,48 +558,23 @@
 
     function adicionarCampo(valor = '') {
 
-      const container =
-        document.getElementById('links-container');
+      const container = document.getElementById('links-container');
+      const inputs = container.querySelectorAll('.shopee-link');
 
-      const inputs =
-        container.querySelectorAll('.shopee-link');
+      if (inputs.length >= MAX_LINKS) return;
 
-
-      if (inputs.length >= MAX_LINKS) {
-
-        return;
-
-      }
-
-
-      const index =
-        inputs.length + 1;
-
-
-      const newWrapper =
-        document.createElement('div');
-
-      newWrapper.className =
-        'link-wrapper';
-
-
-      /*
-       * Usamos textContent depois para evitar
-       * problemas com valores inseridos diretamente
-       * no HTML.
-       */
+      const index = inputs.length + 1;
+      const newWrapper = document.createElement('div');
+      newWrapper.className = 'link-wrapper';
 
       newWrapper.innerHTML = `
-
         <div class="input-group">
-
           <input
             type="url"
             class="shopee-link"
             placeholder="${index}. Cole o link do produto..."
             oninput="processarInput(this)"
           >
-
           <button
             type="button"
             class="btn-action btn-paste"
@@ -667,7 +583,6 @@
           >
             <i class="fa-solid fa-paste"></i>
           </button>
-
           <button
             type="button"
             class="btn-action btn-remove"
@@ -676,47 +591,25 @@
           >
             <i class="fa-solid fa-trash"></i>
           </button>
-
         </div>
-
         <div class="preview-box">
-
           <i class="fa-solid fa-link"></i>
-
           Detectado:
-
           <span class="domain"></span>
-
         </div>
-
       `;
-
 
       container.appendChild(newWrapper);
 
-
-      const inputElem =
-        newWrapper.querySelector('.shopee-link');
-
-
-      /*
-       * Coloca o valor somente depois
-       * do elemento estar criado.
-       */
+      const inputElem = newWrapper.querySelector('.shopee-link');
 
       if (valor) {
-
         inputElem.value = valor;
-
         processarInput(inputElem);
-
       }
 
-
       atualizarContador();
-
     }
-
 
     /*
      * =====================================================
@@ -725,37 +618,22 @@
      */
 
     async function colarDoClipboard(button) {
-
-      const input =
-        button.parentElement
-          .querySelector('.shopee-link');
-
+      const input = button.parentElement.querySelector('.shopee-link');
 
       try {
-
-        const texto =
-          await navigator.clipboard.readText();
-
+        if (!navigator.clipboard) {
+          throw new Error('Sem suporte ao Clipboard');
+        }
+        const texto = await navigator.clipboard.readText();
 
         if (texto) {
-
-          input.value =
-            texto.trim();
-
+          input.value = texto.trim();
           processarInput(input);
-
         }
-
       } catch (erro) {
-
-        alert(
-          'Não foi possível acessar a área de transferência.'
-        );
-
+        alert('Cole o link manualmente no campo.');
       }
-
     }
-
 
     /*
      * =====================================================
@@ -764,94 +642,42 @@
      */
 
     function removerCampo(button) {
+      const wrapper = button.closest('.link-wrapper');
 
-      const wrapper =
-        button.closest('.link-wrapper');
+      if (wrapper) wrapper.remove();
 
-
-      if (wrapper) {
-
-        wrapper.remove();
-
-      }
-
-
-      /*
-       * Garante que sempre exista
-       * pelo menos um campo.
-       */
-
-      const quantidade =
-        document.querySelectorAll('.shopee-link').length;
-
+      const quantidade = document.querySelectorAll('.shopee-link').length;
 
       if (quantidade === 0) {
-
         adicionarCampo();
-
       }
 
-
       reindexarPlaceholders();
-
       atualizarContador();
-
     }
-
 
     /*
      * =====================================================
-     * REINDEXAR PLACEHOLDERS
+     * REINDEXAR PLACEHOLDERS E CONTADOR
      * =====================================================
      */
 
     function reindexarPlaceholders() {
-
-      const inputs =
-        document.querySelectorAll('.shopee-link');
-
-
+      const inputs = document.querySelectorAll('.shopee-link');
       inputs.forEach((input, index) => {
-
-        input.placeholder =
-          `${index + 1}. Cole o link do produto...`;
-
+        input.placeholder = `${index + 1}. Cole o link do produto...`;
       });
-
     }
-
-
-    /*
-     * =====================================================
-     * CONTADOR
-     * =====================================================
-     */
 
     function atualizarContador() {
+      const total = document.querySelectorAll('.shopee-link').length;
+      document.getElementById('total-count').innerText = total;
 
-      const total =
-        document.querySelectorAll('.shopee-link').length;
-
-
-      document.getElementById('total-count')
-        .innerText = total;
-
-
-      const btnAdd =
-        document.getElementById('btn-add-more');
-
-
+      const btnAdd = document.getElementById('btn-add-more');
       if (btnAdd) {
-
-        btnAdd.style.display =
-          total >= MAX_LINKS
-            ? 'none'
-            : 'block';
-
+        btnAdd.style.display = total >= MAX_LINKS ? 'none' : 'block';
       }
-
     }
-
 
     /*
      * =====================================================
@@ -860,329 +686,109 @@
      */
 
     function salvarHistorico(qtd) {
+      const historia = JSON.parse(localStorage.getItem('shopee_history') || '[]');
+      const agora = new Date();
 
-      const historia =
-        JSON.parse(
-          localStorage.getItem('shopee_history') || '[]'
-        );
-
-
-      const agora =
-        new Date();
-
-
-      const dataHora =
-        agora.toLocaleString('pt-BR', {
-          day: '2-digit',
-          month: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
-
-
-      historia.unshift({
-        qtd: qtd,
-        dataHora: dataHora
+      const dataHora = agora.toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
       });
 
+      historia.unshift({ qtd: qtd, dataHora: dataHora });
 
-      /*
-       * Mantém somente os 5 últimos envios.
-       */
+      if (historia.length > 5) historia.pop();
 
-      if (historia.length > 5) {
-
-        historia.pop();
-
-      }
-
-
-      localStorage.setItem(
-        'shopee_history',
-        JSON.stringify(historia)
-      );
-
-
+      localStorage.setItem('shopee_history', JSON.stringify(historia));
       carregarHistorico();
-
     }
 
-
     function carregarHistorico() {
-
-      const historyList =
-        document.getElementById('history-list');
-
-
-      const historia =
-        JSON.parse(
-          localStorage.getItem('shopee_history') || '[]'
-        );
-
+      const historyList = document.getElementById('history-list');
+      const historia = JSON.parse(localStorage.getItem('shopee_history') || '[]');
 
       if (historia.length === 0) {
-
         historyList.innerHTML = `
-          <p style="
-            font-size:0.75rem;
-            color:var(--text-muted);
-            text-align:center;
-          ">
+          <p style="font-size:0.75rem; color:var(--text-muted); text-align:center;">
             Nenhum envio recente.
           </p>
         `;
-
         return;
-
       }
 
-
-      historyList.innerHTML =
-        historia.map(item => `
-
-          <div class="history-item">
-
-            <span>
-              🚀 Lote com
-              <b>${item.qtd} link(s)</b>
-            </span>
-
-            <span class="history-date">
-              ${item.dataHora}
-            </span>
-
-          </div>
-
-        `).join('');
-
+      historyList.innerHTML = historia.map(item => `
+        <div class="history-item">
+          <span>🚀 Lote com <b>${item.qtd} link(s)</b></span>
+          <span class="history-date">${item.dataHora}</span>
+        </div>
+      `).join('');
     }
-
 
     function limparHistorico() {
-
-      localStorage.removeItem(
-        'shopee_history'
-      );
-
+      localStorage.removeItem('shopee_history');
       carregarHistorico();
-
     }
-
 
     /*
      * =====================================================
-     * ENVIAR LOTE PARA O N8N
+     * ENVIAR DADOS NATIVAMENTE PARA O TELEGRAM (VIA SENDDATA)
      * =====================================================
      */
 
-    async function dispararLote() {
+    function dispararLote() {
+      const status = document.getElementById('status-msg');
+      const botao = document.getElementById('btn-submit');
+      const inputs = document.querySelectorAll('.shopee-link');
+      const intervalo = parseInt(document.getElementById('intervalo')?.value || '0', 10);
 
-      const status =
-        document.getElementById('status-msg');
-
-
-      const botao =
-        document.getElementById('btn-submit');
-
-
-      const inputs =
-        document.querySelectorAll('.shopee-link');
-
-
-      const intervalo =
-        parseInt(
-          document.getElementById('intervalo')?.value || '0',
-          10
-        );
-
-
-      /*
-       * Coleta os links.
-       */
-
-      const listaLinks =
-        Array.from(inputs)
-          .map(input => input.value.trim())
-          .filter(link => link.length > 0);
-
-
-      /*
-       * Validação.
-       */
+      const listaLinks = Array.from(inputs)
+        .map(input => input.value.trim())
+        .filter(link => link.length > 0);
 
       if (listaLinks.length === 0) {
-
-        status.style.color =
-          '#EF4444';
-
-        status.innerText =
-          '❌ Insira pelo menos um link.';
-
+        status.style.color = '#EF4444';
+        status.innerText = '❌ Insira pelo menos um link.';
         return;
-
       }
-
-
-      /*
-       * Estado de carregamento.
-       */
 
       botao.disabled = true;
+      status.style.color = '#FFB300';
+      status.innerText = `⏳ Enviando para o Bot...`;
 
-      status.style.color =
-        '#FFB300';
-
-      status.innerText =
-        `⏳ Enviando ${listaLinks.length} link(s)...`;
-
-
-      /*
-       * Nome do usuário Telegram.
-       */
-
-      const usuario =
-        tg?.initDataUnsafe?.user?.first_name ||
-        'Admin';
-
-
-      /*
-       * Dados enviados ao n8n.
-       */
+      const usuario = tg?.initDataUnsafe?.user?.first_name || 'Admin';
 
       const dados = {
-
         links: listaLinks,
-
         intervaloMinutos: intervalo,
-
-        usuario: usuario
-
+        usuario: usuario,
+        user_id: tg?.initDataUnsafe?.user?.id || null
       };
 
-
-      console.log(
-        'Dados enviados ao n8n:',
-        dados
-      );
-
-
       try {
+        if (tg && typeof tg.sendData === 'function') {
+          // Envia a string JSON nativamente para o Bot do Telegram
+          tg.sendData(JSON.stringify(dados));
+          
+          salvarHistorico(listaLinks.length);
+          status.style.color = '#10B981';
+          status.innerText = `✅ Dados enviados com sucesso! Fechando...`;
 
-        const response =
-          await fetch(
-            WEBHOOK_URL,
-            {
-              method: 'POST',
+          setTimeout(() => {
+            tg.close();
+          }, 1000);
 
-              headers: {
-                'Content-Type': 'application/json'
-              },
-
-              body: JSON.stringify(dados)
-            }
-          );
-
-
-        /*
-         * Verifica resposta HTTP.
-         */
-
-        if (!response.ok) {
-
-          throw new Error(
-            `HTTP ${response.status}`
-          );
-
+        } else {
+          throw new Error('Ambiente fora do Telegram WebApp.');
         }
 
-
-        /*
-         * Sucesso.
-         */
-
-        status.style.color =
-          '#10B981';
-
-        status.innerText =
-          `✅ ${listaLinks.length} link(s) enviado(s) ao n8n!`;
-
-
-        salvarHistorico(
-          listaLinks.length
-        );
-
-
-        /*
-         * Limpa os campos.
-         */
-
-        document.getElementById(
-          'links-container'
-        ).innerHTML = `
-
-          <div class="link-wrapper">
-
-            <div class="input-group">
-
-              <input
-                type="url"
-                class="shopee-link"
-                placeholder="1. Cole o link do produto..."
-                oninput="processarInput(this)"
-              >
-
-              <button
-                type="button"
-                class="btn-action btn-paste"
-                onclick="colarDoClipboard(this)"
-                title="Colar link"
-              >
-                <i class="fa-solid fa-paste"></i>
-              </button>
-
-            </div>
-
-            <div class="preview-box">
-
-              <i class="fa-solid fa-link"></i>
-
-              Detectado:
-
-              <span class="domain"></span>
-
-            </div>
-
-          </div>
-
-        `;
-
-
-        atualizarContador();
-
       } catch (erro) {
-
-        console.error(
-          'Erro ao enviar para o n8n:',
-          erro
-        );
-
-
-        status.style.color =
-          '#EF4444';
-
-
-        status.innerText =
-          '❌ Erro de conexão com o n8n.';
-
-
-      } finally {
-
+        console.error('Erro no envio nativo:', erro);
+        status.style.color = '#EF4444';
+        status.innerText = '❌ Abra o app diretamente pelo Bot do Telegram.';
         botao.disabled = false;
-
       }
-
     }
-
 
     /*
      * =====================================================
@@ -1191,7 +797,6 @@
      */
 
     carregarHistorico();
-
     atualizarContador();
 
   </script>
