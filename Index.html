@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Envio de Links Shopee</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --shopee-color: #ee4d2d;
+      --bg-color: #f4f5f7;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; padding: 20px 10px; }
+
+    .container { width: 100%; max-width: 500px; }
+
+    .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .card h2 { font-size: 1.1rem; margin-bottom: 15px; text-align: center; color: var(--shopee-color); }
+    
+    .input-group { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+    .input-group input { flex: 1; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+    .input-group input:focus { outline: none; border-color: var(--shopee-color); }
+
+    .btn-remove { background: #ff4d4d; color: white; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    
+    .btn-add { width: 100%; padding: 10px; background: #e8f5e9; color: #2e7d32; border: 1px dashed #2e7d32; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 15px; transition: 0.2s; }
+    .btn-add:hover { background: #c8e6c9; }
+
+    .btn-submit { width: 100%; padding: 12px; background: var(--shopee-color); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; }
+    .btn-submit:hover { opacity: 0.9; }
+
+    .counter { text-align: right; font-size: 0.8rem; color: #777; margin-bottom: 8px; }
+    #status-msg { text-align: center; font-weight: bold; margin-top: 12px; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <h2><i class="fa-solid fa-layer-group"></i> Envio de Links em Lote</h2>
+      
+      <div class="counter"><span id="total-count">1</span> / 20 campos</div>
+
+      <div id="links-container">
+        <div class="input-group">
+          <input type="url" class="shopee-link" placeholder="1. Cole o link da Shopee aqui..." required>
+        </div>
+      </div>
+
+      <button type="button" class="btn-add" id="btn-add-more" onclick="adicionarCampo()">
+        <i class="fa-solid fa-plus"></i> Adicionar outro link
+      </button>
+
+      <button type="button" class="btn-submit" onclick="dispararLote()">
+        <i class="fa-solid fa-paper-plane"></i> Enviar Todos os Links
+      </button>
+
+      <p id="status-msg"></p>
+    </div>
+  </div>
+
+  <script>
+    const MAX_LINKS = 20;
+
+    // Inicializa integração Telegram
+    const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
+
+    // Adiciona novo campo
+    function adicionarCampo() {
+      const container = document.getElementById('links-container');
+      const inputs = container.querySelectorAll('.shopee-link');
+      
+      if (inputs.length >= MAX_LINKS) {
+        alert('Você atingiu o limite de 20 links por envio.');
+        return;
+      }
+
+      const index = inputs.length + 1;
+      const newGroup = document.createElement('div');
+      newGroup.className = 'input-group';
+      newGroup.innerHTML = `
+        <input type="url" class="shopee-link" placeholder="${index}. Cole o link da Shopee aqui...">
+        <button type="button" class="btn-remove" onclick="removerCampo(this)">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      `;
+
+      container.appendChild(newGroup);
+      atualizarContador();
+    }
+
+    // Remove campo específico
+    function removerCampo(button) {
+      button.parentElement.remove();
+      reindexarPlaceholders();
+      atualizarContador();
+    }
+
+    // Reordena numeração dos placeholders
+    function reindexarPlaceholders() {
+      const inputs = document.querySelectorAll('.shopee-link');
+      inputs.forEach((input, i) => {
+        input.placeholder = `${i + 1}. Cole o link da Shopee aqui...`;
+      });
+    }
+
+    // Atualiza o contador visual
+    function atualizarContador() {
+      const total = document.querySelectorAll('.shopee-link').length;
+      document.getElementById('total-count').innerText = total;
+
+      const btnAdd = document.getElementById('btn-add-more');
+      btnAdd.style.display = total >= MAX_LINKS ? 'none' : 'block';
+    }
+
+    // Envia o lote para o Webhook
+    async function dispararLote() {
+      const status = document.getElementById('status-msg');
+      const inputs = document.querySelectorAll('.shopee-link');
+      
+      const listaLinks = Array.from(inputs)
+        .map(input => input.value.trim())
+        .filter(link => link.length > 0);
+
+      if (listaLinks.length === 0) {
+        status.style.color = '#d32f2f';
+        status.innerText = 'Preencha ao menos um link antes de enviar.';
+        return;
+      }
+
+      // ⚠️ SUBS-TITUA PELA SUA URL DE PRODUCTION DO WEBHOOK DO N8N:
+      const WEBHOOK_URL = 'HTTPS://SEU-N8N.COM/WEBHOOK/ENVIO-SHOPEE';
+
+      status.style.color = '#333';
+      status.innerText = `Enviando ${listaLinks.length} link(s)...`;
+
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            links: listaLinks,
+            usuario: tg?.initDataUnsafe?.user?.first_name || "Admin" 
+          })
+        });
+
+        if (response.ok) {
+          status.style.color = '#2e7d32';
+          status.innerText = `✅ ${listaLinks.length} link(s) enviado(s) com sucesso ao n8n!`;
+          
+          document.getElementById('links-container').innerHTML = `
+            <div class="input-group">
+              <input type="url" class="shopee-link" placeholder="1. Cole o link da Shopee aqui..." required>
+            </div>
+          `;
+          atualizarContador();
+        } else {
+          status.style.color = '#d32f2f';
+          status.innerText = '❌ Erro ao enviar para o n8n.';
+        }
+      } catch (err) {
+        status.style.color = '#d32f2f';
+        status.innerText = '❌ Erro de conexão com o n8n.';
+      }
+    }
+  </script>
+</body>
+</html>
